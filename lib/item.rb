@@ -21,9 +21,21 @@ class HackerNewsReader::Item
     @did_email
   end
 
+  def emailed?
+    did_email
+  end
+
   def marking
     raise "Unset attribute!" if @marking.nil?
     @marking
+  end
+
+  def ignored?
+    marking == "IGNORED"
+  end
+
+  def interesting?
+    marking == "INTERESTING"
   end
 
   def pulled_at
