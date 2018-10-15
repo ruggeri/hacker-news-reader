@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/application_logic.rb'
+require_relative '../lib/database_connection.rb'
+
+include HackerNewsReader
+
+def main
+  db = DatabaseConnection::get_db_connection
+  ApplicationLogic::pull_best_items_and_update(db)
+end
+
+main
