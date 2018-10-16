@@ -24,3 +24,24 @@ your version of this file.
 
 Of course, put the email address you want to use in the secrets file,
 too!
+
+## How to use
+
+**`pull-hacker-news-stories`**
+
+This command will pull new, popular stories from the Hacker News API. It
+stores info about these stories in a Postgresql database.
+
+**`review-hacker-news-stories`**
+
+This command will let you review Hacker News stories. It will show you a
+story, and you can press `j` to ignore, or `f` to mark as interesting.
+You may press `u` to undo.
+
+Hit `Ctr-C` to exit.
+
+**`email-hacker-news-stories`**
+
+This command will send you an email of all stories marked as
+interesting. Of course, it will not include any previously emailed
+stories!
