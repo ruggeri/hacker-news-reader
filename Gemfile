@@ -3,5 +3,6 @@
 source "https://rubygems.org"
 
 gem 'faraday'
+gem 'launchy'
 gem 'mail'
 gem 'pg'
