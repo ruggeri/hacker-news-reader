@@ -16,10 +16,20 @@ module HackerNewsReader::DatabaseConnection
     @db = PG.connect(dbname: DB_NAME)
 
     # In case this is our first time, setup the tables.
+    maybe_create_db
     maybe_add_marked_enum(@db)
     maybe_add_items_table(@db)
 
     @db
+  end
+
+  # This means you don't even need to createdb yourself!
+  def self.maybe_create_db
+    # This isn't foolproof. You can trick this.
+    num_dbs = Integer(`psql -l | grep #{DB_NAME} | wc -l`.chomp)
+    return if num_dbs > 0
+
+    `createdb #{DB_NAME}`
   end
 
   # This creates a Postgres type to mark whether we are interested in a
