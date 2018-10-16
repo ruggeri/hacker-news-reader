@@ -44,11 +44,23 @@ module HackerNewsReader::ReviewCommand
     end
   end
 
+  def self.clear_prev_line!
+    # \r means "carriage return." Moves the cursor back to the start of
+    # the line.
+    #
+    # \033[1A tells the terminal to move up one line. \033 means "ESC".
+    # [1A is the "control sequence" which means move up one line.
+    #
+    # \033[2K is the control sequence that clears the entire line.
+    print "\r\033[1A\033[2K"
+  end
+
   def self.review_item(state)
     item = state[:items][state[:current_item_idx]]
 
     puts "#{state[:num_unmarked_items]} unmarked items!"
-    puts [item.id, item.title, item.score].join " | "
+    output = [item.id, item.title, item.score].join " | "
+    puts output
 
     case read_command!
     when "f"
@@ -66,20 +78,13 @@ module HackerNewsReader::ReviewCommand
       exit
     end
 
-    # Go back two lines. Erase them.
-    #
-    # \r means "carriage return." Moves the cursor back to the start of
-    # the line.
-    #
-    # \033[1A tells the terminal to move up one line. \033 means "ESC".
-    # [1A is the "control sequence" which means move up one line.
-    #
-    # \033[2K is the control sequence that clears the entire line.
-    #
-    # Note: this kinda screws up for long titles that take more than one
-    # line :-\
-    print "\r\033[1A\033[2K"
-    print "\r\033[1A\033[2K"
+    # Fanciness to see how many lines of text were printed.
+    number_of_terminal_columns = Float(`tput cols`)
+    num_output_lines = (output.length / number_of_terminal_columns).ceil
+    # Include line about number of unmarked items.
+    num_output_lines += 1
+    # Clear all those lines.
+    (num_output_lines).times { clear_prev_line! }
   end
 
   # Review and mark pulled items stored in the DB.
