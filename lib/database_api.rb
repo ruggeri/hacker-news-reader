@@ -149,4 +149,24 @@ module HackerNewsReader::DatabaseAPI
     items = rows.map { |r| HackerNewsReader::Item.from_row(r, fields) }
     items
   end
+
+  # Get Items that have never been marked. These need to be reviewed.
+  def self.get_unopened_items(db)
+    result = db.exec <<-SQL
+      SELECT
+        *
+      FROM
+        items
+      WHERE
+        marking = 'INTERESTING'
+      ORDER BY
+        score DESC
+      ;
+    SQL
+    rows = result.values
+    fields = result.fields
+
+    items = rows.map { |r| HackerNewsReader::Item.from_row(r, fields) }
+    items
+  end
 end
