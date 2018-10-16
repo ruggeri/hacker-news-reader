@@ -69,7 +69,7 @@ module HackerNewsReader::ApplicationLogic
     items_to_email = DatabaseAPI::get_unemailed_items(db)
 
     return unless should_email_items?(items_to_email)
-    Emailer::email_items(db, items_to_email)
+    Emailer::email_items!(db, items_to_email)
 
     items_to_email.each { |i| DatabaseAPI::update_as_emailed(db, i.id) }
 

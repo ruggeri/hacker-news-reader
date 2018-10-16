@@ -1,17 +1,23 @@
 require 'json'
 require 'mail'
+require_relative './config.rb'
 
 module HackerNewsReader; end
 
-# Methods that email me the hacker news update on a daily basis.
+# Methods that email me the Hacker News update. Meant to be run every
+# once in a while so I don't spam myself.
 module HackerNewsReader::Emailer
+  # I use AWS Simple Email Service. My credentials are stored in a
+  # secrets file. If I checked that file in, people could steal the
+  # secrets and spam everyone.
   SECRETS = JSON.parse(
-    File.read("/Users/ruggeri/.secrets.json"), symbolize_names: true
+    File.read(Config::SECRETS_FILE_PATH), symbolize_names: true
   )
 
+  # Configures the mail gem to use my AWS SES SMTP server.
   Mail.defaults do
     delivery_method :smtp, {
-                      address: "email-smtp.us-west-2.amazonaws.com",
+                      address: Config::AWS_EMAIL_SERVER_URL,
                       port: 587,
                       user_name: SECRETS[:SES_USER_NAME],
                       password: SECRETS[:SES_PASSWORD],
@@ -20,7 +26,7 @@ module HackerNewsReader::Emailer
                     }
   end
 
-  # Converts a story to a line with a link.
+  # Converts an HN item to some HTML with a link.
   def self.item_to_mail_body_line(item)
     hn_url = "https://news.ycombinator.com/item?id=#{item.id}"
 
@@ -30,18 +36,18 @@ module HackerNewsReader::Emailer
     ].join(" | ")
   end
 
-  # Build the body of that email. Send it. Update each item as emailed.
-  def self.email_items(db, items)
+  # Build the body of an email for the items and send it.
+  def self.email_items!(db, items)
     lines = items.map { |item| item_to_mail_body_line(item) }
     body = lines.join("\n<br>\n")
-    send_email(body)
+    send_email!(body)
   end
 
   # Send an email with the given body.
-  def self.send_email(b)
+  def self.send_email!(b)
     mail = Mail.new do
-      from "ruggeri@self-loop.com"
-      to "ruggeri@self-loop.com"
+      from Config::EMAIL_ADDRESS
+      to Config::EMAIL_ADDRESS
       subject "#{Time.now}: Hacker News Update"
 
       html_part do
