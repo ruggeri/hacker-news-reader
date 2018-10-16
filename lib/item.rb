@@ -126,4 +126,8 @@ class HackerNewsReader::Item
     raise "pulled_at attribute was never set!" if @pulled_at.nil?
     @pulled_at
   end
+
+  def hacker_news_url
+    "https://news.ycombinator.com/item?id=#{id}"
+  end
 end
