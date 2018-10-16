@@ -19,12 +19,9 @@ module HackerNewsReader::Config
   # I use AWS SES. My credentials are stored in a secrets file. If I
   # checked that file in, people could steal the secrets and spam
   # everyone. You'll need your own.
-  SECRETS_FILE_PATH = "/Users/ruggeri/.secrets.json"
-
-  # And this is the email server URL. You may need a different one.
-  AWS_EMAIL_SERVER_URL = "email-smtp.us-west-2.amazonaws.com"
-
-  # This is the address that will receive your HN emails. Use your own
-  # of course!
-  EMAIL_ADDRESS = "ruggeri@self-loop.com"
+  #
+  # I have an example in `examples/secrets.json`.
+  #
+  # This expects your secrets file to be in your home directory.
+  SECRETS_FILE_PATH = "/Users/#{`whoami`.chomp}/.secrets.json"
 end

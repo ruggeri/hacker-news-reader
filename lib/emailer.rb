@@ -18,7 +18,7 @@ module HackerNewsReader::Emailer
   # Configures the mail gem to use my AWS SES SMTP server.
   Mail.defaults do
     delivery_method :smtp, {
-                      address: HackerNewsReader::Config::AWS_EMAIL_SERVER_URL,
+                      address: SECRETS[:AWS_SMTP_SERVER_URL],
                       # Port 587 is used for SMTP over TLS.
                       port: 587,
                       user_name: SECRETS[:SES_USER_NAME],
@@ -48,8 +48,8 @@ module HackerNewsReader::Emailer
   # Send an email with the given body.
   def self.send_email!(b)
     mail = Mail.new do
-      from HackerNewsReader::Config::EMAIL_ADDRESS
-      to HackerNewsReader::Config::EMAIL_ADDRESS
+      from SECRETS[:EMAIL_ADDRESS]
+      to SECRETS[:EMAIL_ADDRESS]
       subject "#{Time.now}: Hacker News Update"
 
       html_part do
