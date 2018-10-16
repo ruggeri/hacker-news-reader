@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'io/console'
 require_relative '../lib/database_api.rb'
 require_relative '../lib/database_connection.rb'
 require_relative '../lib/reviewer.rb'
