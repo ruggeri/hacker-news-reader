@@ -29,7 +29,7 @@ module HackerNewsReader::ReviewCommand
     state[:num_unmarked_items] += 1
     state[:current_item_idx] -= 1
 
-    prev_item = state[:items][state[:id]]
+    prev_item = state[:items][state[:current_item_idx]]
     DatabaseAPI::update_marking(state[:db], prev_item.id, "UNMARKED")
   end
 
@@ -58,7 +58,13 @@ module HackerNewsReader::ReviewCommand
   def self.review_item(state)
     item = state[:items][state[:current_item_idx]]
 
-    puts "#{state[:num_unmarked_items]} unmarked items!"
+    num_items_to_email = DatabaseAPI::get_unemailed_items(state[:db]).length
+    puts [
+      "#{state[:num_unmarked_items]} unmarked",
+      "#{state[:num_marked_items]} marked",
+      "#{num_items_to_email} to email"
+    ].join(" | ")
+
     output = [item.id, item.title, item.score].join " | "
     puts output
 

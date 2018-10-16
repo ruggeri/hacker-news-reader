@@ -21,6 +21,8 @@ module HackerNewsReader::EmailCommand
       puts "#{items_to_email.length} interesting items. Waiting to email."
       return
     end
+
+    true
   end
 
   # Build and send the email of stories.
