@@ -6,11 +6,11 @@ module HackerNewsReader; end
 
 # Methods to pull data down from the Hacker News API.
 module HackerNewsReader::WebAPI
-  BASE_URL = "https://hacker-news.firebaseio.com/v0"
+  API_BASE_URL = "https://hacker-news.firebaseio.com/v0"
 
   # Pulls a list of the ids of the current "best" stories.
   def self.pull_best_ids
-    uri = "#{BASE_URL}/beststories.json?print=pretty"
+    uri = "#{API_BASE_URL}/beststories.json?print=pretty"
 
     response = Faraday.get(uri)
     if response.status != 200
@@ -23,7 +23,7 @@ module HackerNewsReader::WebAPI
 
   # Pulls the information of a given story.
   def self.pull_item(new_id)
-    uri = "#{BASE_URL}/item/#{new_id}.json?print=pretty"
+    uri = "#{API_BASE_URL}/item/#{new_id}.json?print=pretty"
 
     response = Faraday.get(uri)
     if response.status != 200

@@ -1,11 +1,13 @@
 require 'pg'
+require './config.rb'
 
 module HackerNewsReader; end
 
 # Methods that build the underlying db connection.
 module HackerNewsReader::DatabaseConnection
-  # To use these scripts, you'll have to `createdb hacker_news`.
-  DB_NAME = "hacker_news"
+  # To use these scripts, you'll have to `createdb hacker_news`. You can
+  # change the name of the database in the config file if you like.
+  DB_NAME = Config::DB_NAME
 
   # Gets a Postgres db connection.
   def self.get_db_connection

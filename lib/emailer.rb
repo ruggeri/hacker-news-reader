@@ -18,6 +18,7 @@ module HackerNewsReader::Emailer
   Mail.defaults do
     delivery_method :smtp, {
                       address: Config::AWS_EMAIL_SERVER_URL,
+                      # Port 587 is used for SMTP over TLS.
                       port: 587,
                       user_name: SECRETS[:SES_USER_NAME],
                       password: SECRETS[:SES_PASSWORD],

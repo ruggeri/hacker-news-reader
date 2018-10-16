@@ -10,7 +10,7 @@ module HackerNewsReader::DatabaseAPI
     rows = result.values
 
     return nil if rows.empty?
-    raise "WTF?" if rows.length > 1
+    raise "id uniqueness constraint violation?!" if rows.length > 1
 
     Item.from_row(rows[0], result.fields)
   end
@@ -44,7 +44,8 @@ module HackerNewsReader::DatabaseAPI
     SQL
   end
 
-  # Update the properties of a story previously stored in the db.
+  # Update the properties of a story previously stored in the db with
+  # new data fetched from the web API.
   def self.update_item_from_web(db, item, pulled_at)
     item.pulled_at = pulled_at
     # Don't need to update emailed or marking fields.
@@ -67,7 +68,7 @@ module HackerNewsReader::DatabaseAPI
     SQL
 
     raise "No one to update?" unless result.cmd_tuples > 0
-    raise "Updated multiple?" if result.cmd_tuples > 1
+    raise "id uniqueness constraint violation??" if result.cmd_tuples > 1
 
     nil
   end
@@ -85,11 +86,13 @@ module HackerNewsReader::DatabaseAPI
     SQL
 
     raise "No one to update?" unless result.cmd_tuples > 0
-    raise "Updated multiple?" if result.cmd_tuples > 1
+    raise "id uniqueness constraint violation??" if result.cmd_tuples > 1
 
     nil
   end
 
+  # Update the marking of IGNORED/INTERESTING. Called from the review
+  # command logic.
   def self.update_marking(db, id, marking)
     result = db.exec <<-SQL, [id, marking]
       UPDATE
@@ -102,7 +105,7 @@ module HackerNewsReader::DatabaseAPI
     SQL
 
     raise "No one to update?" unless result.cmd_tuples > 0
-    raise "Updated multiple?" if result.cmd_tuples > 1
+    raise "id uniqueness constraint violation??" if result.cmd_tuples > 1
 
     nil
   end
@@ -127,6 +130,7 @@ module HackerNewsReader::DatabaseAPI
     items
   end
 
+  # Get Items that have never been marked. These need to be reviewed.
   def self.get_unmarked_items(db)
     result = db.exec <<-SQL
       SELECT
