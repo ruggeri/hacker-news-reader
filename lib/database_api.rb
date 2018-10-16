@@ -12,7 +12,7 @@ module HackerNewsReader::DatabaseAPI
     return nil if rows.empty?
     raise "id uniqueness constraint violation?!" if rows.length > 1
 
-    Item.from_row(rows[0], result.fields)
+    HackerNewsReader::Item.from_row(rows[0], result.fields)
   end
 
   # Insert a story into the db. Assumes this story has never been pulled
@@ -126,7 +126,7 @@ module HackerNewsReader::DatabaseAPI
     rows = result.values
     fields = result.fields
 
-    items = rows.map { |r| Item.from_row(r, fields) }
+    items = rows.map { |r| HackerNewsReader::Item.from_row(r, fields) }
     items
   end
 
@@ -146,7 +146,7 @@ module HackerNewsReader::DatabaseAPI
     rows = result.values
     fields = result.fields
 
-    items = rows.map { |r| Item.from_row(r, fields) }
+    items = rows.map { |r| HackerNewsReader::Item.from_row(r, fields) }
     items
   end
 end

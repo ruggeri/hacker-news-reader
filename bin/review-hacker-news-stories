@@ -1,13 +1,109 @@
 #!/usr/bin/env ruby
 
-require_relative '../lib/application_logic.rb'
+require 'io/console'
+require_relative '../lib/database_api.rb'
 require_relative '../lib/database_connection.rb'
 
-include HackerNewsReader
+module HackerNewsReader; end
 
-def main
-  db = DatabaseConnection::get_db_connection
-  ApplicationLogic::review_items(db)
+module HackerNewsReader::ReviewCommand
+  # So I don't have to endlessly namespace stuff.
+  include HackerNewsReader
+
+  # Marks an item as interesting or ignored.
+  def self.mark_item!(state, marking)
+    item = state[:items][state[:current_item_idx]]
+
+    DatabaseAPI::update_marking(state[:db], item.id, marking)
+    state[:num_marked_items] += 1
+    state[:num_unmarked_items] -= 1
+    state[:current_item_idx] += 1
+  end
+
+  # In case you make a mistake you can undo!
+  def self.undo_previous_marking!(state)
+    # Can't undo if we haven't done anything!
+    return if state[:current_item_idx] == 0
+
+    state[:num_marked_items] -= 1
+    state[:num_unmarked_items] += 1
+    state[:current_item_idx] -= 1
+
+    prev_item = state[:items][state[:id]]
+    DatabaseAPI::update_marking(state[:db], prev_item.id, "UNMARKED")
+  end
+
+  # Reads the command from the user.
+  def self.read_command!
+    # Puts the terminal temporarily in *noncanonical mode*. That's the
+    # mode where you don't wait for a newline.
+    #
+    # What an unintuitive name. :-\
+    STDIN.raw do |stdin|
+      return stdin.getc
+    end
+  end
+
+  def self.review_item(state)
+    item = state[:items][state[:current_item_idx]]
+
+    puts "#{state[:num_unmarked_items]} unmarked items!"
+    puts [item.id, item.title, item.score].join " | "
+
+    case read_command!
+    when "f"
+      # f => mark as interesting.
+      mark_item!(state, 'INTERESTING')
+    when "j"
+      # j => mark as ignored.
+      mark_item!(state, 'IGNORED')
+    when "u"
+      # u => undo last marking.
+      undo_previous_marking!(state)
+    when "\cc"
+      # Control-c means quit the program
+      puts "Goodbye!"
+      exit
+    end
+
+    # Go back two lines. Erase them.
+    #
+    # \r means "carriage return." Moves the cursor back to the start of
+    # the line.
+    #
+    # \033[1A tells the terminal to move up one line. \033 means "ESC".
+    # [1A is the "control sequence" which means move up one line.
+    #
+    # \033[2K is the control sequence that clears the entire line.
+    #
+    # Note: this kinda screws up for long titles that take more than one
+    # line :-\
+    print "\r\033[1A\033[2K"
+    print "\r\033[1A\033[2K"
+  end
+
+  # Review and mark pulled items stored in the DB.
+  def self.review_items(db)
+    unmarked_items = DatabaseAPI::get_unmarked_items(db)
+
+    # This will be our "global state" that we pass around.
+    state = {
+      db: db,
+      items: unmarked_items,
+      num_unmarked_items: unmarked_items.length,
+      num_marked_items: 0,
+      current_item_idx: 0,
+    }
+
+    while state[:current_item_idx] < state[:items].length
+      review_item(state)
+    end
+  end
+
+  def self.main
+    db = DatabaseConnection::get_db_connection
+    review_items(db)
+  end
 end
 
-main
+HackerNewsReader::ReviewCommand::main

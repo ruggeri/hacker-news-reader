@@ -1,13 +1,44 @@
 #!/usr/bin/env ruby
 
-require_relative '../lib/application_logic.rb'
+require_relative '../lib/config.rb'
+require_relative '../lib/database_api.rb'
 require_relative '../lib/database_connection.rb'
+require_relative '../lib/emailer.rb'
 
-include HackerNewsReader
+module HackerNewsReader; end
 
-def main
-  db = DatabaseConnection::get_db_connection
-  ApplicationLogic::email_items(db)
+# The main logic of the application.
+module HackerNewsReader::EmailCommand
+  # So I don't have to endlessly namespace stuff.
+  include HackerNewsReader
+
+  # Decides whether it is worth sending an email.
+  def self.should_email_items?(items_to_email)
+    if items_to_email.empty?
+      puts "No items to send!"
+      return
+    elsif items_to_email.length < Config::MIN_EMAIL_LENGTH
+      puts "#{items_to_email.length} interesting items. Waiting to email."
+      return
+    end
+  end
+
+  # Build and send the email of stories.
+  def self.email_items(db)
+    items_to_email = DatabaseAPI::get_unemailed_items(db)
+
+    return unless should_email_items?(items_to_email)
+    Emailer::email_items!(db, items_to_email)
+
+    items_to_email.each { |i| DatabaseAPI::update_as_emailed(db, i.id) }
+
+    puts "Emailed #{items_to_email.length} items!"
+  end
+
+  def self.main
+    db = DatabaseConnection::get_db_connection
+    email_items(db)
+  end
 end
 
-main
+HackerNewsReader::EmailCommand::main

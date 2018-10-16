@@ -31,6 +31,6 @@ module HackerNewsReader::WebAPI
     end
 
     json = JSON.parse(response.body, symbolize_names: true)
-    Item.from_json(json)
+    HackerNewsReader::Item.from_json(json)
   end
 end
