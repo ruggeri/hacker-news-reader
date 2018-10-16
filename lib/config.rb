@@ -5,10 +5,6 @@ module HackerNewsReader::Config
   # previously called `createdb hacker_news`.
   DB_NAME = "hacker_news"
 
-  # Useful for debugging. Will print more info about what the script is
-  # doing.
-  FETCH_LOGGING = false
-
   # I don't want to send an email with the stories until a critical mass
   # of interesting stories builds up.
   MIN_EMAIL_LENGTH = 10

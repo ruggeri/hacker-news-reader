@@ -36,22 +36,19 @@ module HackerNewsReader::PullCommand
   # in the db.
   def self.pull_best_items_and_update(db)
     WebAPI::pull_best_ids.each do |new_id|
-      puts "#{new_id}: Fetching stored value" if Config::FETCH_LOGGING
       stored_item = DatabaseAPI::get_item_by_id(db, new_id)
 
       unless should_pull?(stored_item)
-        puts "#{new_id}: Skipping" if Config::FETCH_LOGGING
         next
       end
 
-      puts "#{new_id}: Pulling"
       pulled_item = WebAPI::pull_item(new_id)
 
       if stored_item.nil?
-        puts "#{new_id}: Storing" if Config::FETCH_LOGGING
+        puts "#{new_id}: Storing"
         DatabaseAPI::insert_item(db, pulled_item, Time.now)
       else
-        puts "#{new_id}: Updating" if Config::FETCH_LOGGING
+        puts "#{new_id}: Updating"
         DatabaseAPI::update_item_from_web(db, pulled_item, Time.now)
       end
     end
