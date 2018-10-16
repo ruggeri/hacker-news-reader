@@ -5,6 +5,8 @@ module HackerNewsReader; end
 
 # The class that represents a Hacker News item.
 class HackerNewsReader::Item
+  MARKING_VALUES = ["UNMARKED", "IGNORED", "INTERESTING", "OPENED"]
+
   # These are class/instance methods that convert to/from web JSON, DB,
   # and Item formats.
   extend HackerNewsReader::ClassItemConversions
@@ -84,8 +86,8 @@ class HackerNewsReader::Item
 
   # Getters/setters for marking.
   def marking=(attr_value)
-    unless ['UNMARKED', 'IGNORED', 'INTERESTING'].include?(attr_value)
-      raise "Expected UNMARKED/IGNORED/INTERESTING. Got: #{attr_value.inspect} instead."
+    unless MARKING_VALUES.include?(attr_value)
+      raise "Expected marking enum value. Got: #{attr_value.inspect} instead."
     end
 
     @marking = attr_value
@@ -104,6 +106,10 @@ class HackerNewsReader::Item
 
   def interesting?
     marking == "INTERESTING"
+  end
+
+  def opened?
+    marking == "OPENED"
   end
 
   # Getters/setters for pulled_at.

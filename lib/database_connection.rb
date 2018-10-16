@@ -43,7 +43,8 @@ module HackerNewsReader::DatabaseConnection
           CREATE TYPE marking AS ENUM (
             'UNMARKED',
             'IGNORED',
-            'INTERESTING'
+            'INTERESTING',
+            'OPENED'
           );
         END IF;
       END$$;
