@@ -6,13 +6,13 @@ require_relative '../lib/database_api.rb'
 module HackerNewsReader; end
 
 class HackerNewsReader::Reviewer
-  attr_reader :current_item_index, :db, :items, :num_marked_items, :num_remaining_items
+  attr_reader :current_item_index, :db, :items, :num_reviewed_items, :num_remaining_items
 
   def initialize(db, items)
     self.current_item_index = 0
     self.db = db
     self.items = items
-    self.num_marked_items = 0
+    self.num_reviewed_items = 0
     self.num_remaining_items = items.length
   end
 
@@ -20,14 +20,24 @@ class HackerNewsReader::Reviewer
     items[current_item_index]
   end
 
+  def advance!
+    self.num_reviewed_items += 1
+    self.num_remaining_items -= 1
+    self.current_item_index += 1
+  end
+
+  def retreat!
+    self.num_reviewed_items -= 1
+    self.num_remaining_items += 1
+    self.current_item_index -= 1
+  end
+
   # Marks an item as interesting or ignored.
   def mark_item!(marking)
     HackerNewsReader::DatabaseAPI::update_marking(
       db, current_item.id, marking
     )
-    self.num_marked_items += 1
-    self.num_remaining_items -= 1
-    self.current_item_index += 1
+    advance!
   end
 
   # In case you make a mistake you can undo!
@@ -35,10 +45,7 @@ class HackerNewsReader::Reviewer
     # Can't undo if we haven't done anything!
     return if current_item_index == 0
 
-    self.num_marked_items -= 1
-    self.num_remaining_items += 1
-    self.current_item_index -= 1
-
+    retreat!
     HackerNewsReader::DatabaseAPI::update_marking(
       db, current_item.id, marking
     )
@@ -83,7 +90,7 @@ class HackerNewsReader::Reviewer
 
     puts [
       "#{num_remaining_items} remaining",
-      "#{num_marked_items} marked",
+      "#{num_reviewed_items} reviewed",
       "#{num_items_to_email} to email"
     ].join(" | ")
 
@@ -104,5 +111,5 @@ class HackerNewsReader::Reviewer
   end
 
   private
-  attr_writer :current_item_index, :db, :items, :num_marked_items, :num_remaining_items
+  attr_writer :current_item_index, :db, :items, :num_reviewed_items, :num_remaining_items
 end
