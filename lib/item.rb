@@ -1,35 +1,103 @@
 require 'time'
+require_relative './item_conversions.rb'
 
 module HackerNewsReader; end
 
+# The class that represents a Hacker News item.
 class HackerNewsReader::Item
-  JSON_ATTRS = [:id, :score, :title, :url, :author, :created_at]
-  APP_ATTRS = [:did_email, :pulled_at, :marking]
+  # These are class/instance methods that convert to/from web JSON, DB,
+  # and Item formats.
+  extend HackerNewsReader::ClassItemConversions
+  include HackerNewsReader::InstanceItemConversions
 
-  attr_reader *JSON_ATTRS
-  attr_writer *APP_ATTRS
+  # These are the attributes that come from the Hacker News API. I
+  # specify their types too.
+  JSON_ATTRS = {
+    id: Integer,
+    score: Integer,
+    title: String,
+    url: String,
+    author: String,
+    created_at: Time,
+  }
+
+  # These are the attributes we add as part of the application.
+  APP_ATTRS = [
+    :did_email,
+    :marking,
+    :pulled_at,
+  ]
+
+  # Add readers for JSON attributes. We won't be able to modify them.
+  # We'll add custom readers/writers for application attributes.
+  attr_reader *JSON_ATTRS.keys
 
   def initialize(attrs)
-    (JSON_ATTRS + APP_ATTRS).each do |attr|
-      next if attrs[attr].nil?
-      instance_variable_set("@#{attr}", attrs[attr])
+    # Copy over all the JSON attributes, checking that they are the
+    # right type of value.
+    JSON_ATTRS.each do |attr_name, expected_type|
+      attr_value = attrs[attr_name]
+      value_type = attr_value.class
+
+      # All attributes are supposed to be present, except maybe the url
+      # because some items are Ask HNs.
+      unless attr_name == :url
+        raise "Required key: #{attr_name}. Got nil." if attr_value.nil?
+      end
+
+      if attr_value != nil && expected_type != value_type
+        raise "Expected type #{expected_type} for #{attr_name}. Got #{attr_value.inspect} instead."
+      end
+
+      instance_variable_set("@#{attr_name}", attr_value)
+    end
+
+    APP_ATTRS.each do |attr_name|
+      attr_value = attrs[attr_name]
+
+      # APP_ATTRS are not required values. We skip any not present.
+      next if attr_value.nil?
+
+      self.send("#{attr_name}=", attr_value)
     end
   end
 
+  # Getters/setters for did_email.
+  def did_email=(attr_value)
+    unless [true, false].include?(attr_value)
+      raise "Expected true/false value for did_email. Got: #{attr_value.inspect} instead."
+    end
+
+    @did_email = attr_value
+  end
+
   def did_email
-    raise "Unset attribute!" if @did_email.nil?
+    # If did_email was never set, don't let them try to use it.
+    raise "did_email attribute was never set!" if @did_email.nil?
     @did_email
   end
 
+  # Alias reader method.
   def emailed?
     did_email
   end
 
+  # Getters/setters for marking.
+  def marking=(attr_value)
+    unless ['UNMARKED', 'IGNORED', 'INTERESTING'].include?(attr_value)
+      raise "Expected UNMARKED/IGNORED/INTERESTING. Got: #{attr_value.inspect} instead."
+    end
+
+    @marking = attr_value
+  end
+
   def marking
-    raise "Unset attribute!" if @marking.nil?
+    # If marking was never set, don't let them try to use it.
+    raise "Marking attribute was never set!" if @marking.nil?
     @marking
   end
 
+  # Helpers for marking attribute.
   def ignored?
     marking == "IGNORED"
   end
@@ -38,67 +106,18 @@ class HackerNewsReader::Item
     marking == "INTERESTING"
   end
 
+  # Getters/setters for pulled_at.
+  def pulled_at=(attr_value)
+    unless attr_value.instance_of?(Time)
+      raise "Expected type Time for #{attr_name}. Got #{attr_value.inspect} instead."
+    end
+
+    @pulled_at = attr_value
+  end
+
   def pulled_at
-    raise "Unset attribute!" if @pulled_at.nil?
+    # If pulled_at was never set, don't let them try to use it.
+    raise "pulled_at attribute was never set!" if @pulled_at.nil?
     @pulled_at
-  end
-
-  # Converts from format from website to our format.
-  def self.from_json(json)
-    item_attrs = {}
-
-    item_attrs[:id] = json[:id]
-    item_attrs[:score] = Integer(json[:score])
-    item_attrs[:title] = json[:title]
-    item_attrs[:url] = json[:url]
-    item_attrs[:author] = json[:by]
-    item_attrs[:created_at] = Time.at(Integer(json[:time]))
-
-    Item.new(item_attrs)
-  end
-
-  def to_params(keys)
-    params = []
-
-    keys.each do |key|
-      if [:id, :score, :title, :url, :author, :did_email, :marking].include?(key)
-        params << self.send(key)
-      elsif [:created_at, :pulled_at].include?(key)
-        # Must convert to ISO format.
-        params << self.send(key).to_s
-      else
-        raise "Unknown key: #{key}!"
-      end
-    end
-
-    params
-  end
-
-  def self.from_row(row, fields)
-    item_attrs = {}
-    fields.each_with_index do |key, idx|
-      key = key.to_sym
-      value = row[idx]
-
-      if [:id, :title, :url, :author, :marking].include?(key)
-        item_attrs[key] = value
-      elsif [:score].include?(key)
-        item_attrs[key] = Integer(value)
-      elsif [:created_at, :pulled_at].include?(key)
-        item_attrs[key] = Time.parse(value)
-      elsif [:did_email].include?(key)
-        if value == "f"
-          item_attrs[key] = false
-        elsif value == "t"
-          item_attrs[key] = true
-        else
-          raise "wtf"
-        end
-      else
-        raise "Unknown key: #{key}"
-      end
-    end
-
-    Item.new(item_attrs)
   end
 end

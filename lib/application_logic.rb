@@ -11,10 +11,13 @@ module HackerNewsReader::ApplicationLogic
   # item. This keeps things like the link, story name, author, score up
   # to date.
   def self.should_pull?(stored_item)
+    # Definitely pull if we haven't stored this item yet.
     return true if stored_item.nil?
+
     # There is no need to update information about a story we have
     # previously emailed about.
     return false if stored_item.emailed?
+
     # Or for one we marked as ignored.
     return false if stored_item.ignored?
 
@@ -36,6 +39,7 @@ module HackerNewsReader::ApplicationLogic
         puts "#{new_id}: Skipping" if Config::FETCH_LOGGING
         next
       end
+
       puts "#{new_id}: Pulling"
       pulled_item = WebAPI::pull_item(new_id)
 
@@ -106,7 +110,6 @@ module HackerNewsReader::ApplicationLogic
         idx += 1
       when "u"
         # u => undo last marking.
-
         if idx > 0
           marked_items -= 1
           idx -= 1

@@ -22,7 +22,7 @@ module HackerNewsReader::DatabaseAPI
     item.did_email = false
     item.marking = "UNMARKED"
 
-    params = item.to_params(
+    params = item.to_sql_params(
       [:id, :score, :title, :url, :author, :created_at, :pulled_at, :did_email, :marking]
     )
 
@@ -49,7 +49,7 @@ module HackerNewsReader::DatabaseAPI
     item.pulled_at = pulled_at
     # Don't need to update emailed or marking fields.
 
-    params = item.to_params([:id, :score, :title, :url, :author, :created_at, :pulled_at])
+    params = item.to_sql_params([:id, :score, :title, :url, :author, :created_at, :pulled_at])
 
     result = db.exec <<-SQL, params
       UPDATE
