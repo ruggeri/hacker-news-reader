@@ -11,13 +11,14 @@ module HackerNewsReader::Emailer
   # secrets file. If I checked that file in, people could steal the
   # secrets and spam everyone.
   SECRETS = JSON.parse(
-    File.read(Config::SECRETS_FILE_PATH), symbolize_names: true
+    File.read(HackerNewsReader::Config::SECRETS_FILE_PATH),
+    symbolize_names: true,
   )
 
   # Configures the mail gem to use my AWS SES SMTP server.
   Mail.defaults do
     delivery_method :smtp, {
-                      address: Config::AWS_EMAIL_SERVER_URL,
+                      address: HackerNewsReader::Config::AWS_EMAIL_SERVER_URL,
                       # Port 587 is used for SMTP over TLS.
                       port: 587,
                       user_name: SECRETS[:SES_USER_NAME],
@@ -47,8 +48,8 @@ module HackerNewsReader::Emailer
   # Send an email with the given body.
   def self.send_email!(b)
     mail = Mail.new do
-      from Config::EMAIL_ADDRESS
-      to Config::EMAIL_ADDRESS
+      from HackerNewsReader::Config::EMAIL_ADDRESS
+      to HackerNewsReader::Config::EMAIL_ADDRESS
       subject "#{Time.now}: Hacker News Update"
 
       html_part do
