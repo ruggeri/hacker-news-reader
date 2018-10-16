@@ -8,6 +8,7 @@ module HackerNewsReader::ClassItemConversions
       id: Integer(json[:id]),
       score: Integer(json[:score]),
       title: json[:title],
+      url: json[:url],
       author: json[:by],
       created_at: Time.at(Integer(json[:time])),
     })
