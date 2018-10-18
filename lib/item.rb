@@ -5,7 +5,13 @@ module HackerNewsReader; end
 
 # The class that represents a Hacker News item.
 class HackerNewsReader::Item
-  MARKING_VALUES = ["UNMARKED", "IGNORED", "INTERESTING", "OPENED"]
+  MARKING_VALUES = [
+    "UNMARKED",
+    "IGNORED",
+    "INTERESTING",
+    "OPENED",
+    "SKIPPED_OPENING",
+  ]
 
   # These are class/instance methods that convert to/from web JSON, DB,
   # and Item formats.
@@ -110,6 +116,10 @@ class HackerNewsReader::Item
 
   def opened?
     marking == "OPENED"
+  end
+
+  def skipped_opening?
+    marking == "SKIPPED_OPENING"
   end
 
   # Getters/setters for pulled_at.

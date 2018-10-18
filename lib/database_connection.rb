@@ -54,7 +54,8 @@ module HackerNewsReader::DatabaseConnection
             'UNMARKED',
             'IGNORED',
             'INTERESTING',
-            'OPENED'
+            'OPENED',
+            'SKIPPED_OPENING'
           );
         END IF;
       END$$;

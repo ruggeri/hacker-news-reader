@@ -19,7 +19,7 @@ module HackerNewsReader::OpenCommand
       reviewer.mark_item!('OPENED')
     when "j"
       # j => skip this for opening for now.
-      reviewer.advance!
+      reviewer.mark_item!('SKIPPED_OPENING')
     when "u"
       # u => undo last opening.
       reviewer.undo_previous_marking!('INTERESTING')
